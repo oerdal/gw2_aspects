@@ -1,5 +1,6 @@
 import json
 import random
+
 from util import fmt_price, get_mat_value
 
 
@@ -17,7 +18,7 @@ with open('dw_items.json', 'r') as f:
 ECTO_PRICE = ecto['sell_price']
 
 
-def salvage_profit(armor, price_data, instant_buy=True):
+def salvage_profit(armor, price_data, instant_buy=False):
     # armor_is_coat T if coat, F otherwise
     armor_is_coat = armor['armor_type'] == 'Coat'
     armor_weight = armor['armor_weight']
@@ -28,11 +29,13 @@ def salvage_profit(armor, price_data, instant_buy=True):
     armor_cost = armor['armor_sell_price'] if instant_buy else armor['armor_buy_price']
     cost_per_charm = (crafting_mat_value - armor_cost) * (1/CHARM_RATE)
 
-    profit = cost_per_charm - armor['charm_buy_price']
+    # cost of the charm through salvaging + cost of buying charm
+    profit = cost_per_charm + armor['charm_buy_price']
+
     return profit
 
 
-def simulate_salvage(armor, price_data, instant_buy=True):
+def simulate_salvage(armor, price_data, instant_buy=False):
     # armor_is_coat T if coat, F otherwise
     armor_is_coat = armor['armor_type'] == 'Coat'
     armor_weight = armor['armor_weight']
@@ -47,6 +50,19 @@ def simulate_salvage(armor, price_data, instant_buy=True):
     return (charm_salvaged, fmt_price(crafting_mat_value), fmt_price(armor_cost))
 
 
+to_salvage = {}
 
 for item in items:
-    print(f"{item['armor_name']}: {fmt_price(salvage_profit(item, dw, instant_buy=False))}")
+    p = salvage_profit(item, dw, instant_buy=False)
+    if p > 0:
+        fp = fmt_price(p)
+        print(f"{item['armor_name']}: {fp}")
+        to_salvage[item['armor_id']] = { 'name' : item['armor_name'], 'charm' : item['rune_element'], 'profit' : fp }
+
+filename = 'salvaging.json'
+print(f'writing to file {filename}')
+
+with open(filename, 'w') as f:
+    json.dump(to_salvage, f)
+
+print('finished writing to file')

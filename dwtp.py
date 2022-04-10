@@ -2,10 +2,13 @@ import re
 import requests
 import json
 
-def scrape_dw():
-    endpt = 'https://api.datawars2.ie/gw2/v1/items/json/new'
+DW_ITEMS_ENDPOINT = 'https://api.datawars2.ie/gw2/v1/items/json/new'
 
-    res = requests.get(endpt)
+'''
+Scrapes Silver's DataWars2 API for TP data.
+'''
+def scrape_dw():
+    res = requests.get(DW_ITEMS_ENDPOINT)
 
     if res.ok:
         items = res.json()
